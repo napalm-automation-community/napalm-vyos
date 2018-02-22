@@ -332,7 +332,7 @@ class VyOSDriver(NetworkDriver):
         else:
             return None
 
-    def get_arp_table(self):
+    def get_arp_table(self, ip=None, mac=None, interface=None):
         # 'age' is not implemented yet
 
         """
@@ -361,6 +361,18 @@ class VyOSDriver(NetworkDriver):
                 macaddr = py23_compat.text_type("00:00:00:00:00:00")
             else:
                 macaddr = py23_compat.text_type(line[2])
+
+            if ip is not None:
+                if ip != py23_compat.text_type(line[0]):
+                    continue
+
+            if mac is not None:
+                if mac != macaddr:
+                    continue
+
+            if interface is not None:
+                if interface != py23_compat.text_type(line[-1]):
+                    continue
 
             arp_table.append(
                 {
