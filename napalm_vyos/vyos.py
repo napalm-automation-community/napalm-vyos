@@ -22,6 +22,7 @@ Read napalm.readthedocs.org for more information.
 
 import re
 import os
+import tempfile
 
 import vyattaconfparser
 
@@ -33,8 +34,9 @@ from netmiko import SCPConn
 import napalm.base.constants as C
 from napalm.base.utils import py23_compat
 from napalm.base.base import NetworkDriver
-from napalm.base.exceptions import ConnectionException, \
-                                   MergeConfigException, ReplaceConfigException
+from napalm.base.exceptions import ConnectionException, MergeConfigException, \
+                                   ReplaceConfigException, CommitError, \
+                                   CommandErrorException
 
 
 class VyOSDriver(NetworkDriver):
@@ -121,53 +123,73 @@ class VyOSDriver(NetworkDriver):
         Due to the OS nature,  we do not
         support a replace using a configuration string.
         """
-        if filename is not None:
-            if os.path.exists(filename) is True:
-                self._scp_client.scp_transfer_file(filename, self._DEST_FILENAME)
-                self.device.send_command("cp "+self._BOOT_FILENAME+" "+self._BACKUP_FILENAME)
-                output_loadcmd = self.device.send_config_set(['load '+self._DEST_FILENAME])
-                match_loaded = re.findall("Load complete.", output_loadcmd)
-                match_notchanged = re.findall("No configuration changes to commit", output_loadcmd)
-                match_failed = re.findall("Failed to parse specified config file", output_loadcmd)
+        if not filename and not config:
+            raise ReplaceConfigException('filename or config param must be provided.')
 
-                if match_failed:
+        if filename is None:
+            temp_file = tempfile.NamedTemporaryFile()
+            temp_file.write(config)
+            temp_file.flush()
+            cfg_filename = temp_file.name
+        else:
+            cfg_filename = filename
+
+
+
+        if os.path.exists(cfg_filename) is True:
+            self._scp_client.scp_transfer_file(cfg_filename, self._DEST_FILENAME)
+            self.device.send_command("cp "+self._BOOT_FILENAME+" "+self._BACKUP_FILENAME)
+            output_loadcmd = self.device.send_config_set(['load '+self._DEST_FILENAME])
+            match_loaded = re.findall("Load complete.", output_loadcmd)
+            match_notchanged = re.findall("No configuration changes to commit", output_loadcmd)
+            match_failed = re.findall("Failed to parse specified config file", output_loadcmd)
+
+            if match_failed:
+                raise ReplaceConfigException("Failed replace config: "
+                                             + output_loadcmd)
+
+            if not match_loaded:
+                if not match_notchanged:
                     raise ReplaceConfigException("Failed replace config: "
                                                  + output_loadcmd)
 
-                if not match_loaded:
-                    if not match_notchanged:
-                        raise ReplaceConfigException("Failed replace config: "
-                                                     + output_loadcmd)
-
-            else:
-                raise ReplaceConfigException("config file is not found")
         else:
-            raise ReplaceConfigException("no configuration found")
+            raise ReplaceConfigException("config file is not found")
+
 
     def load_merge_candidate(self, filename=None, config=None):
         """
         Only configuration in set-format is supported with load_merge_candidate.
         """
-        if filename is not None:
-            if os.path.exists(filename) is True:
-                with open(filename) as f:
-                    self.device.send_command("cp "+self._BOOT_FILENAME+" "
-                                             + self._BACKUP_FILENAME)
-                    self._new_config = f.read()
-                    cfg = [x for x in self._new_config.split("\n") if x is not ""]
-                    output_loadcmd = self.device.send_config_set(cfg)
-                    match_setfailed = re.findall("Delete failed", output_loadcmd)
-                    match_delfailed = re.findall("Set failed", output_loadcmd)
 
-                    if match_setfailed or match_delfailed:
-                        raise MergeConfigException("Failed merge config: "
-                                                   + output_loadcmd)
-            else:
-                raise MergeConfigException("config file is not found")
-        elif config is not None:
-            self._new_config = config
+        if not filename and not config:
+            raise MergeConfigException('filename or config param must be provided.')
+
+        if filename is None:
+            temp_file = tempfile.NamedTemporaryFile()
+            temp_file.write(config)
+            temp_file.flush()
+            cfg_filename = temp_file.name
         else:
-            raise MergeConfigException("no configuration found")
+            cfg_filename = filename
+
+
+        if os.path.exists(cfg_filename) is True:
+            with open(cfg_filename) as f:
+                self.device.send_command("cp "+self._BOOT_FILENAME+" "
+                                         + self._BACKUP_FILENAME)
+                self._new_config = f.read()
+                cfg = [x for x in self._new_config.split("\n") if x is not ""]
+                output_loadcmd = self.device.send_config_set(cfg)
+                match_setfailed = re.findall("Delete failed", output_loadcmd)
+                match_delfailed = re.findall("Set failed", output_loadcmd)
+
+                if match_setfailed or match_delfailed:
+                    raise MergeConfigException("Failed merge config: "
+                                               + output_loadcmd)
+        else:
+            raise MergeConfigException("config file is not found")
+
 
     def discard_config(self):
         self.device.exit_config_mode()
@@ -183,8 +205,12 @@ class VyOSDriver(NetworkDriver):
             return diff
 
     def commit_config(self):
-        if self.device.commit():
-            self.device.send_config_set(['save'])
+        try:
+            self.device.commit()
+        except ValueError:
+            raise CommitError("Failed to commit config on the device")
+
+        self.device.send_config_set(['save'])
         self.device.exit_config_mode()
 
     def rollback(self):
@@ -478,6 +504,8 @@ class VyOSDriver(NetworkDriver):
                     received_prefixes = int(state_prefix)
                     is_up = True
                 except ValueError:
+                    state_prefix = -1
+                    received_prefixes = -1
                     is_up = False
 
                 if bgp_version == "4":
