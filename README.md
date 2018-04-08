@@ -4,7 +4,9 @@
 
 # napalm-vyos
 
-Community NAPALM driver for the VyOS devices. https://vyos.io/
+Community NAPALM driver for the VyOS. https://vyos.io/
+
+Also it can be used for other similar systems: Vyatta or EdgeOS 
 
 
 General support matrix
