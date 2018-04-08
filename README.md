@@ -4,6 +4,8 @@
 
 # napalm-vyos
 
+Community NAPALM driver for the VyOS devices. https://vyos.io/
+
 
 General support matrix
 ----------------------
@@ -31,14 +33,6 @@ Configuration support matrix
 | **Rollback**        |  Yes  |
 
 
-Other methods
--------------
-
-  | VyOS             |
-  | ---------------- | 
-  |**load_template** |   
-  |**ping**          |            
-  |**traceroute**    |  
 
 Optional arguments
 ------------------
