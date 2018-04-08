@@ -9,44 +9,36 @@ General support matrix
 ----------------------
 
 
-> +---------------------+---------------+
-> | \_                  | VyOS          |
-> +=====================+===============+
-> | **Module Name**     | > napalm-vyos |
-> +---------------------+---------------+
-> | **Driver Name**     | > vyos        |
-> +---------------------+---------------+
-> | **Structured data** | > Yes         |
-> +---------------------+---------------+
-> | **Minimum version** | > 1.1.6       |
-> +---------------------+---------------+
-> | **Backend library** | > [netmiko]   |
-> +---------------------+---------------+
->
+ |                    | VyOS         |
+ |--------------------|--------------|
+ |**Module Name**     |  napalm-vyos |
+ |**Driver Name**     |  vyos        |
+ |**Structured data** |  Yes         |
+ |**Minimum version** |  1.1.6       |
+ |**Backend library** |  netmiko     |
 
 
 
 Configuration support matrix
 ----------------------------
 
-\_                    VyOS
-  --------------------- ------
-  **Config. replace**   Yes
-  **Config. merge**     Yes
-  **Compare config**    Yes
-  **Atomic Changes**    Yes
-  **Rollback**          Yes
-  
+|                     |  VyOS |
+| ------------------- | ----- |
+| **Config. replace** |  Yes  |
+| **Config. merge**   |  Yes  |
+|**Compare config**   |  Yes  |
+| **Atomic Changes**  |  Yes  |
+| **Rollback**        |  Yes  |
+
 
 Other methods
 -------------
 
-
-  \_                   VyOS
-  -------------------- ------
-  **load\_template**   
-  **ping**             
-  **traceroute**     
+  | VyOS             |
+  | ---------------- | 
+  |**load_template** |   
+  |**ping**          |            
+  |**traceroute**    |  
 
 Optional arguments
 ------------------
@@ -55,9 +47,9 @@ NAPALM supports passing certain optional arguments to some drivers. To do that y
 :code:`optional_args` parameter when creating the object::
 
     >>> from napalm import get_network_driver
-    >>> driver = get_network_driver('eos')
+    >>> driver = get_network_driver('vyos')
     >>> optional_args = {'my_optional_arg1': 'my_value1', 'my_optional_arg2': 'my_value2'}
-    >>> device = driver('192.168.76.10', 'dbarroso', 'this_is_not_a_secure_password', optional_args=optional_args)
+    >>> device = driver('192.168.76.10', 'vagrant', 'this_is_not_a_secure_password', optional_args=optional_args)
     >>> device.open()
 
 List of supported optional arguments
