@@ -12,7 +12,7 @@ reqs = [str(ir.req) for ir in install_reqs]
 
 setup(
     name="napalm-vyos",
-    version="0.1.4",
+    version="0.1.5",
     packages=find_packages(),
     author="Piotr Pieprzycki",
     author_email="piotr.pieprzycki@dreamlab.pl",
