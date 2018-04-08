@@ -8,41 +8,45 @@
 General support matrix
 ----------------------
 
- =====================  ==============
- _                         VyOS
- =====================  ==============
- **Module Name**         napalm-vyos
- **Driver Name**         vyos
- **Structured data**     Yes
- **Minimum version**     1.1.6
- **Backend library**     `netmiko`_
- =====================  ==============
+
+> +---------------------+---------------+
+> | \_                  | VyOS          |
+> +=====================+===============+
+> | **Module Name**     | > napalm-vyos |
+> +---------------------+---------------+
+> | **Driver Name**     | > vyos        |
+> +---------------------+---------------+
+> | **Structured data** | > Yes         |
+> +---------------------+---------------+
+> | **Minimum version** | > 1.1.6       |
+> +---------------------+---------------+
+> | **Backend library** | > [netmiko]   |
+> +---------------------+---------------+
+>
+
+
 
 Configuration support matrix
 ----------------------------
 
-=====================   ==========
-_                       VyOS       
-=====================   ==========
-**Config. replace**     Yes       
-**Config. merge**       Yes       
-**Compare config**      Yes       
-**Atomic Changes**      Yes       
-**Rollback**            Yes
-=====================   ==========
-
+\_                    VyOS
+  --------------------- ------
+  **Config. replace**   Yes
+  **Config. merge**     Yes
+  **Compare config**    Yes
+  **Atomic Changes**    Yes
+  **Rollback**          Yes
+  
 
 Other methods
 -------------
 
-============================== =====
-_                               VyOS 
-============================== =====
-**load_template**              |yes|
-**ping**                       |yes| 
-**traceroute**                 |no|
-============================== =====
 
+  \_                   VyOS
+  -------------------- ------
+  **load\_template**   
+  **ping**             
+  **traceroute**     
 
 Optional arguments
 ------------------
