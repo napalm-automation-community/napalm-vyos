@@ -99,3 +99,12 @@ Notes
 
 * The NAPALM-vyos driver supports authentication with ssh key. Please specify path to a key in optional_args
 `'optional_args': {'key_file': '/home/user/ssh_private_key'}`
+
+Configuration Examples
+----------------------
+* Vyos as IPSec VPN endpoint and BGP router -   https://github.com/DreamLab/ansible-vyos
+* CI Demo for vyos+junos (Polish only) https://github.com/ppieprzycki/plnog2016
+
+VyOS Community
+------------------
+Slack Channel https://slack.vyos.io

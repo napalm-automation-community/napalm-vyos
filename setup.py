@@ -3,7 +3,12 @@
 import uuid
 
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+
+# for pip >= 10
+try:
+    from pip._internal.req import parse_requirements
+except ImportError:
+    from pip.req import parse_requirements
 
 __author__ = 'Piotr Pieprzycki <piotr.pieprzycki@dreamlab.pl>'
 
@@ -12,7 +17,7 @@ reqs = [str(ir.req) for ir in install_reqs]
 
 setup(
     name="napalm-vyos",
-    version="0.1.5",
+    version="0.1.6",
     packages=find_packages(),
     author="Piotr Pieprzycki",
     author_email="piotr.pieprzycki@dreamlab.pl",
