@@ -204,9 +204,11 @@ class VyOSDriver(NetworkDriver):
             diff = ''.join(output_compare.splitlines(True)[1:-1])
             return diff
 
-    def commit_config(self, confirmed=None):
-        if confirmed is not None:
-            raise NotImplementedError
+    def commit_config(self, message=""):
+        if message:
+            raise NotImplementedError(
+                "Commit message not implemented for this platform"
+            )
 
         try:
             self.device.commit()
@@ -374,9 +376,10 @@ class VyOSDriver(NetworkDriver):
         192.168.1.3              ether   00:50:56:86:7b:06   C                     eth1
         """
 
-        if vrf:
-            msg = "VRF support has not been added for this getter on this platform."
-            raise NotImplementedError(msg)
+        if vrf:              
+            raise NotImplementedError(
+                "VRF support has not been added for this getter on this platform."
+            )
 
         output = self.device.send_command("show arp")
         output = output.split("\n")
