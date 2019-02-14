@@ -204,7 +204,10 @@ class VyOSDriver(NetworkDriver):
             diff = ''.join(output_compare.splitlines(True)[1:-1])
             return diff
 
-    def commit_config(self):
+    def commit_config(self, confirmed=None):
+        if confirmed is not None:
+            raise NotImplementedError
+
         try:
             self.device.commit()
         except ValueError:
@@ -358,7 +361,7 @@ class VyOSDriver(NetworkDriver):
         else:
             return None
 
-    def get_arp_table(self):
+    def get_arp_table(self, vrf=""):
         # 'age' is not implemented yet
 
         """
@@ -370,6 +373,11 @@ class VyOSDriver(NetworkDriver):
         10.129.2.97              ether   00:50:56:9f:64:09   C                     eth0
         192.168.1.3              ether   00:50:56:86:7b:06   C                     eth1
         """
+
+        if vrf:
+            msg = "VRF support has not been added for this getter on this platform."
+            raise NotImplementedError(msg)
+
         output = self.device.send_command("show arp")
         output = output.split("\n")
 
