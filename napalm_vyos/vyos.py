@@ -308,7 +308,7 @@ class VyOSDriver(NetworkDriver):
         output_iface = self.device.send_command("show interfaces")
 
         # Collect all interfaces' name and status
-        match = re.findall("(\S+)\s+[:\-\d/\.]+\s+([uAD])/([uAD])", output_iface)
+        match = re.findall(r"(\S+)\s+[:\-\d/\.]+\s+([uAD])/([uAD])", output_iface)
 
         # 'match' example:
         # [("br0", "u", "D"), ("eth0", "u", "u"), ("eth1", "u", "u")...]
@@ -431,7 +431,7 @@ class VyOSDriver(NetworkDriver):
                 # 'remote' contains '*' if the machine synchronized with NTP server
                 synchronized = "*" in remote
 
-                match = re.search("(\d+\.\d+\.\d+\.\d+)", remote)
+                match = re.search(r"(\d+\.\d+\.\d+\.\d+)", remote)
                 ip = match.group(1)
 
                 when = when if when != '-' else 0
@@ -459,7 +459,7 @@ class VyOSDriver(NetworkDriver):
 
         for line in output_peers:
             if len(line) > 0:
-                match = re.search("(\d+\.\d+\.\d+\.\d+)\s+", line)
+                match = re.search(r"(\d+\.\d+\.\d+\.\d+)\s+", line)
                 ntp_peers.update({
                     match.group(1): {}
                 })
@@ -485,7 +485,7 @@ class VyOSDriver(NetworkDriver):
         output = self.device.send_command("show ip bgp summary")
         output = output.split("\n")
 
-        match = re.search(".* router identifier (\d+\.\d+\.\d+\.\d+), local AS number (\d+)",
+        match = re.search(r".* router identifier (\d+\.\d+\.\d+\.\d+), local AS number (\d+)",
                           output[0])
         if not match:
             return {}
@@ -537,10 +537,10 @@ class VyOSDriver(NetworkDriver):
                 """
                 bgp_detail = self.device.send_command("show ip bgp neighbors %s" % peer_id)
 
-                match_rid = re.search("remote router ID (\d+\.\d+\.\d+\.\d+).*", bgp_detail)
+                match_rid = re.search(r"remote router ID (\d+\.\d+\.\d+\.\d+).*", bgp_detail)
                 remote_rid = match_rid.group(1)
 
-                match_prefix_accepted = re.search("(\d+) accepted prefixes", bgp_detail)
+                match_prefix_accepted = re.search(r"(\d+) accepted prefixes", bgp_detail)
                 accepted_prefixes = match_prefix_accepted.group(1)
 
                 bgp_neighbor_data["global"]["peers"].setdefault(peer_id, {})
@@ -573,19 +573,19 @@ class VyOSDriver(NetworkDriver):
             return -1
         else:
             if "y" in bgp_uptime:
-                match = re.search("(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
+                match = re.search(r"(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
                 uptime = ((int(match.group(1)) * self._YEAR_SECONDS) +
                           (int(match.group(3)) * self._WEEK_SECONDS) +
                           (int(match.group(5)) * self._DAY_SECONDS))
                 return uptime
             elif "w" in bgp_uptime:
-                match = re.search("(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
+                match = re.search(r"(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
                 uptime = ((int(match.group(1)) * self._WEEK_SECONDS) +
                           (int(match.group(3)) * self._DAY_SECONDS) +
                           (int(match.group(5)) * self._HOUR_SECONDS))
                 return uptime
             elif "d" in bgp_uptime:
-                match = re.search("(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
+                match = re.search(r"(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
                 uptime = ((int(match.group(1)) * self._DAY_SECONDS) +
                           (int(match.group(3)) * self._HOUR_SECONDS) +
                           (int(match.group(5)) * self._MINUTE_SECONDS))
@@ -612,9 +612,9 @@ class VyOSDriver(NetworkDriver):
           32776498     279273          0          0          0          0
         """
         output = self.device.send_command("show interfaces detail")
-        interfaces = re.findall("(\S+): <.*", output)
+        interfaces = re.findall(r"(\S+): <.*", output)
         # count = re.findall("(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+", output)
-        count = re.findall("(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", output)
+        count = re.findall(r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", output)
         counters = dict()
 
         j = 0
@@ -877,7 +877,7 @@ class VyOSDriver(NetworkDriver):
             else:
                 rtt_info = rtt_info[-2]
 
-            match = re.search("([\d\.]+)/([\d\.]+)/([\d\.]+)/([\d\.]+)", rtt_info)
+            match = re.search(r"([\d\.]+)/([\d\.]+)/([\d\.]+)/([\d\.]+)", rtt_info)
 
             if match is not None:
                 rtt_min = float(match.group(1))
