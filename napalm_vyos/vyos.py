@@ -178,7 +178,7 @@ class VyOSDriver(NetworkDriver):
                 self.device.send_command("cp "+self._BOOT_FILENAME+" "
                                          + self._BACKUP_FILENAME)
                 self._new_config = f.read()
-                cfg = [x for x in self._new_config.split("\n") if x is not ""]
+                cfg = [x for x in self._new_config.split("\n") if x]
                 output_loadcmd = self.device.send_config_set(cfg)
                 match_setfailed = re.findall("Delete failed", output_loadcmd)
                 match_delfailed = re.findall("Set failed", output_loadcmd)
@@ -498,7 +498,7 @@ class VyOSDriver(NetworkDriver):
         bgp_neighbor_data["global"]["peers"] = {}
 
         # delete the header and empty element
-        bgp_info = [i.strip() for i in output[6:-2] if i is not ""]
+        bgp_info = [i.strip() for i in output[6:-2] if i]
 
         for i in bgp_info:
             if len(i) > 0:
@@ -849,7 +849,7 @@ class VyOSDriver(NetworkDriver):
         else:
             err = ""
 
-        if err is not "":
+        if err:
             ping_result["error"] = err
         else:
             # 'packet_info' example:
