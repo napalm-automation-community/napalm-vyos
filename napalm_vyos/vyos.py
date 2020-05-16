@@ -327,17 +327,12 @@ class VyOSDriver(NetworkDriver):
             ifaces_detail = config["interfaces"][iface_type]
 
             for iface_name in ifaces_detail:
-                description = self._get_value("description", ifaces_detail[iface_name])
-                if description is None:
-                    description = ""
-                speed = self._get_value("speed", ifaces_detail[iface_name])
-                if speed is None:
-                    speed = 0
+                details = ifaces_detail[iface_name]
+                description = details.get("description", "")
+                speed = details.get("speed", "0")
                 if speed == "auto":
                     speed = 0
-                hw_id = self._get_value("hw-id", ifaces_detail[iface_name])
-                if hw_id is None:
-                    hw_id = "00:00:00:00:00:00"
+                hw_id = details.get("hw-id", "00:00:00:00:00:00")
 
                 is_up = (iface_state[iface_name]["Link"] == "u")
                 is_enabled = (iface_state[iface_name]["State"] == "u")
@@ -354,13 +349,6 @@ class VyOSDriver(NetworkDriver):
                 })
 
         return iface_dict
-
-    @staticmethod
-    def _get_value(key, target_dict):
-        if key in target_dict:
-            return target_dict[key]
-        else:
-            return None
 
     def get_arp_table(self, vrf=""):
         # 'age' is not implemented yet
