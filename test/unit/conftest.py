@@ -5,7 +5,6 @@ import pytest
 from napalm.base.test import conftest as parent_conftest
 
 from napalm.base.test.double import BaseTestDouble
-from napalm.base.utils import py23_compat
 
 from napalm_vyos import vyos
 
@@ -55,5 +54,4 @@ class FakeVyOSDevice(BaseTestDouble):
     def send_command(self, command, **kwargs):
         filename = '{}.text'.format(self.sanitize_text(command))
         full_path = self.find_file(filename)
-        result = self.read_txt_file(full_path)
-        return py23_compat.text_type(result)
+        return self.read_txt_file(full_path)

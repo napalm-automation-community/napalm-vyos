@@ -32,7 +32,6 @@ from netmiko import SCPConn
 
 # NAPALM base
 import napalm.base.constants as C
-from napalm.base.utils import py23_compat
 from napalm.base.base import NetworkDriver
 from napalm.base.exceptions import ConnectionException, MergeConfigException, \
                                    ReplaceConfigException, CommitError, \
@@ -347,10 +346,10 @@ class VyOSDriver(NetworkDriver):
                   iface_name: {
                     "is_up": bool(is_up),
                     "is_enabled": bool(is_enabled),
-                    "description": py23_compat.text_type(description),
+                    "description": description,
                     "last_flapped": float(-1),
                     "speed": int(speed),
-                    "mac_address": py23_compat.text_type(hw_id)
+                    "mac_address": hw_id,
                   }
                 })
 
@@ -376,7 +375,7 @@ class VyOSDriver(NetworkDriver):
         192.168.1.3              ether   00:50:56:86:7b:06   C                     eth1
         """
 
-        if vrf:              
+        if vrf:
             raise NotImplementedError(
                 "VRF support has not been added for this getter on this platform."
             )
@@ -395,16 +394,16 @@ class VyOSDriver(NetworkDriver):
             # ["10.129.2.254", "ether", "00:50:56:97:af:b1", "C", "eth0"]
             # [u'10.0.12.33', u'(incomplete)', u'eth1']
             if "incomplete" in line[1]:
-                macaddr = py23_compat.text_type("00:00:00:00:00:00")
+                macaddr = "00:00:00:00:00:00"
             else:
-                macaddr = py23_compat.text_type(line[2])
+                macaddr = line[2]
 
             arp_table.append(
                 {
-                    'interface': py23_compat.text_type(line[-1]),
+                    'interface': line[-1],
                     'mac': macaddr,
-                    'ip': py23_compat.text_type(line[0]),
-                    'age': 0.0
+                    'ip': line[0],
+                    'age': 0.0,
                 }
             )
 
@@ -438,17 +437,17 @@ class VyOSDriver(NetworkDriver):
                 when = when if when != '-' else 0
 
                 ntp_stats.append({
-                    "remote": py23_compat.text_type(ip),
-                    "referenceid": py23_compat.text_type(refid),
+                    "remote": ip,
+                    "referenceid": refid,
                     "synchronized": bool(synchronized),
                     "stratum": int(st),
-                    "type": py23_compat.text_type(t),
-                    "when": py23_compat.text_type(when),
+                    "type": t,
+                    "when": when,
                     "hostpoll": int(hostpoll),
                     "reachability": int(reachability),
                     "delay": float(delay),
                     "offset": float(offset),
-                    "jitter": float(jitter)
+                    "jitter": float(jitter),
                 })
 
         return ntp_stats
@@ -462,7 +461,7 @@ class VyOSDriver(NetworkDriver):
             if len(line) > 0:
                 match = re.search("(\d+\.\d+\.\d+\.\d+)\s+", line)
                 ntp_peers.update({
-                    py23_compat.text_type(match.group(1)): {}
+                    match.group(1): {}
                 })
 
         return ntp_peers
@@ -490,7 +489,7 @@ class VyOSDriver(NetworkDriver):
                           output[0])
         if not match:
             return {}
-        router_id = py23_compat.text_type(match.group(1))
+        router_id = match.group(1)
         local_as = int(match.group(2))
 
         bgp_neighbor_data = dict()
@@ -546,11 +545,11 @@ class VyOSDriver(NetworkDriver):
 
                 bgp_neighbor_data["global"]["peers"].setdefault(peer_id, {})
                 peer_dict = {
-                    "description": py23_compat.text_type(""),
+                    "description": "",
                     "is_enabled": bool(is_enabled),
                     "local_as": int(local_as),
                     "is_up": bool(is_up),
-                    "remote_id": py23_compat.text_type(remote_rid),
+                    "remote_id": remote_rid,
                     "uptime": int(self._bgp_time_conversion(up_time)),
                     "remote_as": int(remote_as)
                 }
@@ -663,15 +662,15 @@ class VyOSDriver(NetworkDriver):
             for i in config["service"]["snmp"]["community"]:
                 snmp["community"].update({
                     i: {
-                        "acl": py23_compat.text_type(""),
-                        "mode": py23_compat.text_type(config["service"]["snmp"]["community"][i]["authorization"])
+                        "acl": "",
+                        "mode": config["service"]["snmp"]["community"][i]["authorization"],
                     }
                 })
 
             snmp.update({
-              "chassis_id": py23_compat.text_type(""),
-              "contact": py23_compat.text_type(config["service"]["snmp"]["contact"]),
-              "location": py23_compat.text_type(config["service"]["snmp"]["location"])
+              "chassis_id": "",
+              "contact": config["service"]["snmp"]["contact"],
+              "location": config["service"]["snmp"]["location"],
             })
 
             return snmp
@@ -713,13 +712,13 @@ class VyOSDriver(NetworkDriver):
 
         facts = {
           "uptime": int(uptime),
-          "vendor": py23_compat.text_type("VyOS"),
-          "os_version": py23_compat.text_type(version),
-          "serial_number": py23_compat.text_type(snumber),
-          "model": py23_compat.text_type(hwmodel),
-          "hostname": py23_compat.text_type(hostname),
-          "fqdn": py23_compat.text_type(fqdn),
-          "interface_list": iface_list
+          "vendor": "VyOS",
+          "os_version": version,
+          "serial_number": snumber,
+          "model": hwmodel,
+          "hostname": hostname,
+          "fqdn": fqdn,
+          "interface_list": iface_list,
         }
 
         return facts
