@@ -1,4 +1,4 @@
-napalm>=2.5,<3.0
+napalm>=3.0
 paramiko
-netmiko<3.0
+netmiko>=3.1.0
 vyattaconfparser
