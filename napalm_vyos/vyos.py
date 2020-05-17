@@ -32,7 +32,6 @@ from netmiko import SCPConn
 
 # NAPALM base
 import napalm.base.constants as C
-from napalm.base.utils import py23_compat
 from napalm.base.base import NetworkDriver
 from napalm.base.exceptions import ConnectionException, MergeConfigException, \
                                    ReplaceConfigException, CommitError, \
@@ -179,7 +178,7 @@ class VyOSDriver(NetworkDriver):
                 self.device.send_command("cp "+self._BOOT_FILENAME+" "
                                          + self._BACKUP_FILENAME)
                 self._new_config = f.read()
-                cfg = [x for x in self._new_config.split("\n") if x is not ""]
+                cfg = [x for x in self._new_config.split("\n") if x]
                 output_loadcmd = self.device.send_config_set(cfg)
                 match_setfailed = re.findall("Delete failed", output_loadcmd)
                 match_delfailed = re.findall("Set failed", output_loadcmd)
@@ -309,7 +308,7 @@ class VyOSDriver(NetworkDriver):
         output_iface = self.device.send_command("show interfaces")
 
         # Collect all interfaces' name and status
-        match = re.findall("(\S+)\s+[:\-\d/\.]+\s+([uAD])/([uAD])", output_iface)
+        match = re.findall(r"(\S+)\s+[:\-\d/\.]+\s+([uAD])/([uAD])", output_iface)
 
         # 'match' example:
         # [("br0", "u", "D"), ("eth0", "u", "u"), ("eth1", "u", "u")...]
@@ -328,17 +327,12 @@ class VyOSDriver(NetworkDriver):
             ifaces_detail = config["interfaces"][iface_type]
 
             for iface_name in ifaces_detail:
-                description = self._get_value("description", ifaces_detail[iface_name])
-                if description is None:
-                    description = ""
-                speed = self._get_value("speed", ifaces_detail[iface_name])
-                if speed is None:
-                    speed = 0
+                details = ifaces_detail[iface_name]
+                description = details.get("description", "")
+                speed = details.get("speed", "0")
                 if speed == "auto":
                     speed = 0
-                hw_id = self._get_value("hw-id", ifaces_detail[iface_name])
-                if hw_id is None:
-                    hw_id = "00:00:00:00:00:00"
+                hw_id = details.get("hw-id", "00:00:00:00:00:00")
 
                 is_up = (iface_state[iface_name]["Link"] == "u")
                 is_enabled = (iface_state[iface_name]["State"] == "u")
@@ -347,21 +341,15 @@ class VyOSDriver(NetworkDriver):
                   iface_name: {
                     "is_up": bool(is_up),
                     "is_enabled": bool(is_enabled),
-                    "description": py23_compat.text_type(description),
+                    "description": description,
                     "last_flapped": float(-1),
+                    "mtu": -1,
                     "speed": int(speed),
-                    "mac_address": py23_compat.text_type(hw_id)
+                    "mac_address": hw_id,
                   }
                 })
 
         return iface_dict
-
-    @staticmethod
-    def _get_value(key, target_dict):
-        if key in target_dict:
-            return target_dict[key]
-        else:
-            return None
 
     def get_arp_table(self, vrf=""):
         # 'age' is not implemented yet
@@ -376,7 +364,7 @@ class VyOSDriver(NetworkDriver):
         192.168.1.3              ether   00:50:56:86:7b:06   C                     eth1
         """
 
-        if vrf:              
+        if vrf:
             raise NotImplementedError(
                 "VRF support has not been added for this getter on this platform."
             )
@@ -395,16 +383,16 @@ class VyOSDriver(NetworkDriver):
             # ["10.129.2.254", "ether", "00:50:56:97:af:b1", "C", "eth0"]
             # [u'10.0.12.33', u'(incomplete)', u'eth1']
             if "incomplete" in line[1]:
-                macaddr = py23_compat.text_type("00:00:00:00:00:00")
+                macaddr = "00:00:00:00:00:00"
             else:
-                macaddr = py23_compat.text_type(line[2])
+                macaddr = line[2]
 
             arp_table.append(
                 {
-                    'interface': py23_compat.text_type(line[-1]),
+                    'interface': line[-1],
                     'mac': macaddr,
-                    'ip': py23_compat.text_type(line[0]),
-                    'age': 0.0
+                    'ip': line[0],
+                    'age': 0.0,
                 }
             )
 
@@ -432,23 +420,23 @@ class VyOSDriver(NetworkDriver):
                 # 'remote' contains '*' if the machine synchronized with NTP server
                 synchronized = "*" in remote
 
-                match = re.search("(\d+\.\d+\.\d+\.\d+)", remote)
+                match = re.search(r"(\d+\.\d+\.\d+\.\d+)", remote)
                 ip = match.group(1)
 
                 when = when if when != '-' else 0
 
                 ntp_stats.append({
-                    "remote": py23_compat.text_type(ip),
-                    "referenceid": py23_compat.text_type(refid),
+                    "remote": ip,
+                    "referenceid": refid,
                     "synchronized": bool(synchronized),
                     "stratum": int(st),
-                    "type": py23_compat.text_type(t),
-                    "when": py23_compat.text_type(when),
+                    "type": t,
+                    "when": when,
                     "hostpoll": int(hostpoll),
                     "reachability": int(reachability),
                     "delay": float(delay),
                     "offset": float(offset),
-                    "jitter": float(jitter)
+                    "jitter": float(jitter),
                 })
 
         return ntp_stats
@@ -460,9 +448,9 @@ class VyOSDriver(NetworkDriver):
 
         for line in output_peers:
             if len(line) > 0:
-                match = re.search("(\d+\.\d+\.\d+\.\d+)\s+", line)
+                match = re.search(r"(\d+\.\d+\.\d+\.\d+)\s+", line)
                 ntp_peers.update({
-                    py23_compat.text_type(match.group(1)): {}
+                    match.group(1): {}
                 })
 
         return ntp_peers
@@ -486,11 +474,11 @@ class VyOSDriver(NetworkDriver):
         output = self.device.send_command("show ip bgp summary")
         output = output.split("\n")
 
-        match = re.search(".* router identifier (\d+\.\d+\.\d+\.\d+), local AS number (\d+)",
+        match = re.search(r".* router identifier (\d+\.\d+\.\d+\.\d+), local AS number (\d+)",
                           output[0])
         if not match:
             return {}
-        router_id = py23_compat.text_type(match.group(1))
+        router_id = match.group(1)
         local_as = int(match.group(2))
 
         bgp_neighbor_data = dict()
@@ -499,7 +487,7 @@ class VyOSDriver(NetworkDriver):
         bgp_neighbor_data["global"]["peers"] = {}
 
         # delete the header and empty element
-        bgp_info = [i.strip() for i in output[6:-2] if i is not ""]
+        bgp_info = [i.strip() for i in output[6:-2] if i]
 
         for i in bgp_info:
             if len(i) > 0:
@@ -538,19 +526,19 @@ class VyOSDriver(NetworkDriver):
                 """
                 bgp_detail = self.device.send_command("show ip bgp neighbors %s" % peer_id)
 
-                match_rid = re.search("remote router ID (\d+\.\d+\.\d+\.\d+).*", bgp_detail)
+                match_rid = re.search(r"remote router ID (\d+\.\d+\.\d+\.\d+).*", bgp_detail)
                 remote_rid = match_rid.group(1)
 
-                match_prefix_accepted = re.search("(\d+) accepted prefixes", bgp_detail)
+                match_prefix_accepted = re.search(r"(\d+) accepted prefixes", bgp_detail)
                 accepted_prefixes = match_prefix_accepted.group(1)
 
                 bgp_neighbor_data["global"]["peers"].setdefault(peer_id, {})
                 peer_dict = {
-                    "description": py23_compat.text_type(""),
+                    "description": "",
                     "is_enabled": bool(is_enabled),
                     "local_as": int(local_as),
                     "is_up": bool(is_up),
-                    "remote_id": py23_compat.text_type(remote_rid),
+                    "remote_id": remote_rid,
                     "uptime": int(self._bgp_time_conversion(up_time)),
                     "remote_as": int(remote_as)
                 }
@@ -574,19 +562,19 @@ class VyOSDriver(NetworkDriver):
             return -1
         else:
             if "y" in bgp_uptime:
-                match = re.search("(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
+                match = re.search(r"(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
                 uptime = ((int(match.group(1)) * self._YEAR_SECONDS) +
                           (int(match.group(3)) * self._WEEK_SECONDS) +
                           (int(match.group(5)) * self._DAY_SECONDS))
                 return uptime
             elif "w" in bgp_uptime:
-                match = re.search("(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
+                match = re.search(r"(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
                 uptime = ((int(match.group(1)) * self._WEEK_SECONDS) +
                           (int(match.group(3)) * self._DAY_SECONDS) +
                           (int(match.group(5)) * self._HOUR_SECONDS))
                 return uptime
             elif "d" in bgp_uptime:
-                match = re.search("(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
+                match = re.search(r"(\d+)(\w)(\d+)(\w)(\d+)(\w)", bgp_uptime)
                 uptime = ((int(match.group(1)) * self._DAY_SECONDS) +
                           (int(match.group(3)) * self._HOUR_SECONDS) +
                           (int(match.group(5)) * self._MINUTE_SECONDS))
@@ -596,6 +584,29 @@ class VyOSDriver(NetworkDriver):
                 uptime = ((hours * self._HOUR_SECONDS) +
                           (minutes * self._MINUTE_SECONDS) + seconds)
                 return uptime
+
+    def get_lldp_neighbors(self):
+        # Multiple neighbors per port are not implemented
+        # The show lldp neighbors commands lists port descriptions, not IDs
+        output = self.device.send_command("show lldp neighbors detail")
+        pattern = r'''(?s)Interface: +(?P<interface>\S+), [^\n]+
+.+?
+ +SysName: +(?P<hostname>\S+)
+.+?
+ +PortID: +ifname (?P<port>\S+)'''
+
+        def _get_interface(match):
+            return [
+                {
+                    'hostname': match.group('hostname'),
+                    'port': match.group('port'),
+                }
+            ]
+
+        return {
+            match.group('interface'): _get_interface(match)
+            for match in re.finditer(pattern, output)
+        }
 
     def get_interfaces_counters(self):
         # 'rx_unicast_packet', 'rx_broadcast_packets', 'tx_unicast_packets',
@@ -613,9 +624,9 @@ class VyOSDriver(NetworkDriver):
           32776498     279273          0          0          0          0
         """
         output = self.device.send_command("show interfaces detail")
-        interfaces = re.findall("(\S+): <.*", output)
+        interfaces = re.findall(r"(\S+): <.*", output)
         # count = re.findall("(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+", output)
-        count = re.findall("(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", output)
+        count = re.findall(r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)", output)
         counters = dict()
 
         j = 0
@@ -663,15 +674,15 @@ class VyOSDriver(NetworkDriver):
             for i in config["service"]["snmp"]["community"]:
                 snmp["community"].update({
                     i: {
-                        "acl": py23_compat.text_type(""),
-                        "mode": py23_compat.text_type(config["service"]["snmp"]["community"][i]["authorization"])
+                        "acl": "",
+                        "mode": config["service"]["snmp"]["community"][i]["authorization"],
                     }
                 })
 
             snmp.update({
-              "chassis_id": py23_compat.text_type(""),
-              "contact": py23_compat.text_type(config["service"]["snmp"]["contact"]),
-              "location": py23_compat.text_type(config["service"]["snmp"]["location"])
+              "chassis_id": "",
+              "contact": config["service"]["snmp"]["contact"],
+              "location": config["service"]["snmp"]["location"],
             })
 
             return snmp
@@ -713,13 +724,13 @@ class VyOSDriver(NetworkDriver):
 
         facts = {
           "uptime": int(uptime),
-          "vendor": py23_compat.text_type("VyOS"),
-          "os_version": py23_compat.text_type(version),
-          "serial_number": py23_compat.text_type(snumber),
-          "model": py23_compat.text_type(hwmodel),
-          "hostname": py23_compat.text_type(hostname),
-          "fqdn": py23_compat.text_type(fqdn),
-          "interface_list": iface_list
+          "vendor": "VyOS",
+          "os_version": version,
+          "serial_number": snumber,
+          "model": hwmodel,
+          "hostname": hostname,
+          "fqdn": fqdn,
+          "interface_list": iface_list,
         }
 
         return facts
@@ -850,7 +861,7 @@ class VyOSDriver(NetworkDriver):
         else:
             err = ""
 
-        if err is not "":
+        if err:
             ping_result["error"] = err
         else:
             # 'packet_info' example:
@@ -878,7 +889,7 @@ class VyOSDriver(NetworkDriver):
             else:
                 rtt_info = rtt_info[-2]
 
-            match = re.search("([\d\.]+)/([\d\.]+)/([\d\.]+)/([\d\.]+)", rtt_info)
+            match = re.search(r"([\d\.]+)/([\d\.]+)/([\d\.]+)/([\d\.]+)", rtt_info)
 
             if match is not None:
                 rtt_min = float(match.group(1))
