@@ -343,6 +343,7 @@ class VyOSDriver(NetworkDriver):
                     "is_enabled": bool(is_enabled),
                     "description": description,
                     "last_flapped": float(-1),
+                    "mtu": -1,
                     "speed": int(speed),
                     "mac_address": hw_id,
                   }
@@ -583,6 +584,29 @@ class VyOSDriver(NetworkDriver):
                 uptime = ((hours * self._HOUR_SECONDS) +
                           (minutes * self._MINUTE_SECONDS) + seconds)
                 return uptime
+
+    def get_lldp_neighbors(self):
+        # Multiple neighbors per port are not implemented
+        # The show lldp neighbors commands lists port descriptions, not IDs
+        output = self.device.send_command("show lldp neighbors detail")
+        pattern = r'''(?s)Interface: +(?P<interface>\S+), [^\n]+
+.+?
+ +SysName: +(?P<hostname>\S+)
+.+?
+ +PortID: +ifname (?P<port>\S+)'''
+
+        def _get_interface(match):
+            return [
+                {
+                    'hostname': match.group('hostname'),
+                    'port': match.group('port'),
+                }
+            ]
+
+        return {
+            match.group('interface'): _get_interface(match)
+            for match in re.finditer(pattern, output)
+        }
 
     def get_interfaces_counters(self):
         # 'rx_unicast_packet', 'rx_broadcast_packets', 'tx_unicast_packets',
