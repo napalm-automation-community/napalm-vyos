@@ -349,6 +349,7 @@ class VyOSDriver(NetworkDriver):
                     "is_enabled": bool(is_enabled),
                     "description": py23_compat.text_type(description),
                     "last_flapped": float(-1),
+                    "mtu": -1,
                     "speed": int(speed),
                     "mac_address": py23_compat.text_type(hw_id)
                   }
