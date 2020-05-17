@@ -1,0 +1,69 @@
+-------------------------------------------------------------------------------
+LLDP neighbors:
+-------------------------------------------------------------------------------
+Interface:    eth1, via: LLDP, RID: 2, Time: 1 day, 18:17:44
+  Chassis:     
+    ChassisID:    mac 52:54:00:99:84:8a
+    SysName:      branch
+    SysDescr:     VyOS 1.3-rolling-202005151915
+    MgmtIP:       10.0.0.3
+    Capability:   Bridge, off
+    Capability:   Router, on
+    Capability:   Wlan, off
+    Capability:   Station, off
+  Port:        
+    PortID:       ifname eth0
+    PortDescr:    to DC
+    TTL:          120
+    PMD autoneg:  supported: yes, enabled: yes
+      Adv:          10Base-T, HD: yes, FD: yes
+      Adv:          100Base-TX, HD: yes, FD: yes
+      MAU oper type: 100BaseTXFD - 2 pair category 5 UTP, full duplex mode
+  LLDP-MED:    
+    Device Type:  Network Connectivity Device
+    Capability:   Capabilities, yes
+    Capability:   Policy, yes
+    Capability:   Location, yes
+    Capability:   MDI/PSE, yes
+    Capability:   MDI/PD, yes
+    Capability:   Inventory, yes
+    Inventory:   
+      Hardware Revision: pc-i440fx-4.2
+      Software Revision: 4.19.122-amd64-vyos
+      Firmware Revision: 1.13.0-1ubuntu1
+      Manufacturer: QEMU
+      Model:        Standard PC (i440FX + PIIX, 1996
+-------------------------------------------------------------------------------
+Interface:    eth2, via: LLDP, RID: 1, Time: 1 day, 18:17:45
+  Chassis:     
+    ChassisID:    mac 52:54:00:98:e5:9f
+    SysName:      dmz
+    SysDescr:     VyOS 1.3-rolling-202005151915
+    MgmtIP:       10.0.0.2
+    Capability:   Bridge, off
+    Capability:   Router, on
+    Capability:   Wlan, off
+    Capability:   Station, off
+  Port:        
+    PortID:       ifname eth0
+    PortDescr:    to DC
+    TTL:          120
+    PMD autoneg:  supported: yes, enabled: yes
+      Adv:          10Base-T, HD: yes, FD: yes
+      Adv:          100Base-TX, HD: yes, FD: yes
+      MAU oper type: 100BaseTXFD - 2 pair category 5 UTP, full duplex mode
+  LLDP-MED:    
+    Device Type:  Network Connectivity Device
+    Capability:   Capabilities, yes
+    Capability:   Policy, yes
+    Capability:   Location, yes
+    Capability:   MDI/PSE, yes
+    Capability:   MDI/PD, yes
+    Capability:   Inventory, yes
+    Inventory:   
+      Hardware Revision: pc-i440fx-4.2
+      Software Revision: 4.19.122-amd64-vyos
+      Firmware Revision: 1.13.0-1ubuntu1
+      Manufacturer: QEMU
+      Model:        Standard PC (i440FX + PIIX, 1996
+-------------------------------------------------------------------------------
