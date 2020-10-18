@@ -698,7 +698,7 @@ class VyOSDriver(NetworkDriver):
         ver_str = [line for line in output if "Version" in line][0]
         version = self.parse_version(ver_str)
 
-        above_1_1 = True if version.startswith('1.0') or version.startswith(1.1) else False
+        above_1_1 = False if version.startswith('1.0') or version.startswith('1.1') else True
         if above_1_1:
             sn_str = [line for line in output if "Hardware S/N" in line][0]
             hwmodel_str = [line for line in output if "Hardware model" in line][0]
