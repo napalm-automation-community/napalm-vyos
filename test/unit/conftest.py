@@ -51,7 +51,16 @@ class PatchedVyOSDriver(vyos.VyOSDriver):
 class FakeVyOSDevice(BaseTestDouble):
     """VyOS device test double."""
 
+    def __init__(self):
+        self.mode_config = False
+
     def send_command(self, command, **kwargs):
         filename = '{}.text'.format(self.sanitize_text(command))
         full_path = self.find_file(filename)
         return self.read_txt_file(full_path)
+
+    def config_mode(self):
+        self.mode_config = True
+
+    def exit_config_mode(self):
+        self.mode_config = False
