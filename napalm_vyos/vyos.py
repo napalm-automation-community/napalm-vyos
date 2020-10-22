@@ -941,7 +941,7 @@ class VyOSDriver(NetworkDriver):
             if retrieve in ["startup", "all"]:
                 config_dict['startup'] = self.device.send_command(f"cat {self._BOOT_FILENAME}")
             if retrieve in ["candidate", "all"]:
-                config_dict['candidate'] = self._new_config
+                config_dict['candidate'] = self._new_config or ""
 
         return config_dict
 
