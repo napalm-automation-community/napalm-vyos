@@ -11,7 +11,7 @@ __author__ = 'Piotr Pieprzycki <piotr.pieprzycki@dreamlab.pl>'
 
 setup(
     name="napalm-vyos",
-    version="0.2.0",
+    version="0.2.1",
     packages=find_packages(),
     author="Piotr Pieprzycki",
     author_email="piotr.pieprzycki@dreamlab.pl",
