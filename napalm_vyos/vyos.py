@@ -126,7 +126,7 @@ class VyOSDriver(NetworkDriver):
             raise ReplaceConfigException('filename or config param must be provided.')
 
         if filename is None:
-            temp_file = tempfile.NamedTemporaryFile()
+            temp_file = tempfile.NamedTemporaryFile(mode='w+')
             temp_file.write(config)
             temp_file.flush()
             cfg_filename = temp_file.name
@@ -165,7 +165,7 @@ class VyOSDriver(NetworkDriver):
             raise MergeConfigException('filename or config param must be provided.')
 
         if filename is None:
-            temp_file = tempfile.NamedTemporaryFile()
+            temp_file = tempfile.NamedTemporaryFile(mode='w+')
             temp_file.write(config)
             temp_file.flush()
             cfg_filename = temp_file.name
