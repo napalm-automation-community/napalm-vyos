@@ -698,10 +698,15 @@ class VyOSDriver(NetworkDriver):
         ver_str = [line for line in output if "Version" in line][0]
         version = self.parse_version(ver_str)
 
-        sn_str = [line for line in output if "S/N" in line][0]
-        snumber = self.parse_snumber(sn_str)
+        above_1_1 = False if version.startswith('1.0') or version.startswith('1.1') else True
+        if above_1_1:
+            sn_str = [line for line in output if "Hardware S/N" in line][0]
+            hwmodel_str = [line for line in output if "Hardware model" in line][0]
+        else:
+            sn_str = [line for line in output if "S/N" in line][0]
+            hwmodel_str = [line for line in output if "HW model" in line][0]
 
-        hwmodel_str = [line for line in output if "HW model" in line][0]
+        snumber = self.parse_snumber(sn_str)
         hwmodel = self.parse_hwmodel(hwmodel_str)
 
         output = self.device.send_command("show configuration")
