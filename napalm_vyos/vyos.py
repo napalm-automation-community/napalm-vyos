@@ -126,7 +126,7 @@ class VyOSDriver(NetworkDriver):
             raise ReplaceConfigException('filename or config param must be provided.')
 
         if filename is None:
-            temp_file = tempfile.NamedTemporaryFile()
+            temp_file = tempfile.NamedTemporaryFile(mode='w+')
             temp_file.write(config)
             temp_file.flush()
             cfg_filename = temp_file.name
@@ -165,7 +165,7 @@ class VyOSDriver(NetworkDriver):
             raise MergeConfigException('filename or config param must be provided.')
 
         if filename is None:
-            temp_file = tempfile.NamedTemporaryFile()
+            temp_file = tempfile.NamedTemporaryFile(mode='w+')
             temp_file.write(config)
             temp_file.flush()
             cfg_filename = temp_file.name
@@ -698,10 +698,15 @@ class VyOSDriver(NetworkDriver):
         ver_str = [line for line in output if "Version" in line][0]
         version = self.parse_version(ver_str)
 
-        sn_str = [line for line in output if "S/N" in line][0]
-        snumber = self.parse_snumber(sn_str)
+        above_1_1 = False if version.startswith('1.0') or version.startswith('1.1') else True
+        if above_1_1:
+            sn_str = [line for line in output if "Hardware S/N" in line][0]
+            hwmodel_str = [line for line in output if "Hardware model" in line][0]
+        else:
+            sn_str = [line for line in output if "S/N" in line][0]
+            hwmodel_str = [line for line in output if "HW model" in line][0]
 
-        hwmodel_str = [line for line in output if "HW model" in line][0]
+        snumber = self.parse_snumber(sn_str)
         hwmodel = self.parse_hwmodel(hwmodel_str)
 
         output = self.device.send_command("show configuration")
@@ -914,3 +919,42 @@ class VyOSDriver(NetworkDriver):
             }
 
             return ping_result
+
+    def get_config(self, retrieve="all", full=False, sanitized=False):
+        """
+        Return the configuration of a device.
+        :param retrieve: String to determine which configuration type you want to retrieve, default is all of them.
+                              The rest will be set to "".
+        :param full: Boolean to retrieve all the configuration. (Not supported)
+        :param sanitized: Boolean to remove secret data. (Only supported for 'running')
+        :return: The object returned is a dictionary with a key for each configuration store:
+            - running(string) - Representation of the native running configuration
+            - candidate(string) - Representation of the candidate configuration.
+            - startup(string) - Representation of the native startup configuration.
+        """
+        if retrieve not in ["running", "candidate", "startup", "all"]:
+            raise Exception("ERROR: Not a valid option to retrieve.\nPlease select from 'running', 'candidate', "
+                            "'startup', or 'all'")
+        else:
+            config_dict = {
+                "running": "",
+                "startup": "",
+                "candidate": ""
+            }
+            if retrieve in ["running", "all"]:
+                config_dict['running'] = self._get_running_config(sanitized)
+            if retrieve in ["startup", "all"]:
+                config_dict['startup'] = self.device.send_command(f"cat {self._BOOT_FILENAME}")
+            if retrieve in ["candidate", "all"]:
+                config_dict['candidate'] = self._new_config or ""
+
+        return config_dict
+
+    def _get_running_config(self, sanitized):
+        if sanitized:
+            return self.device.send_command("show configuration")
+        self.device.config_mode()
+        config = self.device.send_command("show")
+        config = config[:config.rfind('\n')]
+        self.device.exit_config_mode()
+        return config
