@@ -608,6 +608,70 @@ class VyOSDriver(NetworkDriver):
             for match in re.finditer(pattern, output)
         }
 
+    def get_lldp_neighbors_detail(self, interface=''):
+        """
+        Parse LLDP neighbors
+        'show lldp neighbor detail' output example: See unit tests
+        """
+        output =  self.device.send_command("show lldp neighbors detail")
+
+        if 'Invalid command' in output:
+            raise ValueError("Command not supported by network device")
+
+        ifiter = re.finditer(r'(?s)Interface: +(?P<name>\S+), [^\n]+\n(?P<raw>.+?)\n--', output)
+        neighbor_data = [
+                {'parent_interface': ifi.group('name'), 'raw': ifi.group('raw')}
+                for ifi in ifiter if not interface or interface == ifi.group('name')
+        ]
+        del ifiter, output
+
+        n_pattern = r'''(?s) +ChassisID: +mac +(?P<chassisid>\S+)
+ +SysName: +(?P<sysname>\S+)
+ +SysDescr: +(?P<sysdescr>.+?)
+ .+?
+ +PortID: +(?P<porttype>mac|ifname) +(?P<portid>\S+)
+ +PortDescr: +(?P<portdescr>.+?)
+ .+?'''
+        caps_pattern = r' +Capability: +(?P<capab>\S+)(?:, +(?P<state>\S+))?\n'
+
+        for neigh in neighbor_data:
+            nb_data = re.search(n_pattern, neigh['raw'])
+            if not nb_data:
+                continue
+            neigh['remote_chassis_id'] = nb_data.group('chassisid')
+            neigh['remote_system_name'] = nb_data.group('sysname')
+            neigh['remote_system_description'] = nb_data.group('sysdescr')
+
+            # Neighbors with PortID type mac tend to have ifname in PortDescr
+            if nb_data.group('porttype') == 'mac':
+                neigh['remote_port'] = nb_data.group('portdescr')
+                neigh['remote_port_description'] = nb_data.group('portid')
+            else:
+                neigh['remote_port'] = nb_data.group('portid')
+                neigh['remote_port_description'] = nb_data.group('portdescr')
+
+
+            nb_data = list(re.finditer(caps_pattern, neigh['raw']))
+            if nb_data:
+                neigh['remote_system_capab'] = [
+                        str(nb_item.group('capab')).lower()
+                        for nb_item in nb_data
+                ]
+                neigh['remote_system_enable_capab'] = [
+                        str(nb_item.group('capab')).lower()
+                        for nb_item in nb_data if nb_item.group('state') == 'on'
+                ]
+            del neigh['raw']
+
+        # Neighbors, grouped by interface, filtered by interface arg
+        return {
+                ifneigh['parent_interface']: [
+                    neigh for neigh in neighbor_data
+                    if ifneigh['parent_interface'] == neigh['parent_interface']
+                    ]
+                for ifneigh in neighbor_data
+        }
+
     def get_interfaces_counters(self):
         # 'rx_unicast_packet', 'rx_broadcast_packets', 'tx_unicast_packets',
         # 'tx_multicast_packets' and 'tx_broadcast_packets' are not implemented yet

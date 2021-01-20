@@ -1,0 +1,38 @@
+-------------------------------------------------------------------------------
+LLDP neighbors:
+-------------------------------------------------------------------------------
+Interface:    eth1, via: LLDP, RID: 1, Time: 0 day, 00:00:14
+  Chassis:     
+    ChassisID:    mac 56:98:09:09:09:09
+    SysName:      pve
+    SysDescr:     Debian GNU/Linux 10 (buster) Linux 5.4.78-2-pve #1 SMP PVE 5.4.78-2 (Thu, 03 Dec 2020 14:26:17 +0100) x86_64
+    MgmtIP:       10.0.0.2
+    MgmtIP:       fe80::baac:6fff:fefe:1337
+    Capability:   Bridge, on
+    Capability:   Router, off
+    Capability:   Wlan, off
+    Capability:   Station, off
+  Port:        
+    PortID:       mac 16:44:c2:e1:7e:cf
+    PortDescr:    vmbr1
+    TTL:          120
+-------------------------------------------------------------------------------
+Interface:    eth5, via: LLDP, RID: 1, Time: 4 days, 04:46:13
+  Chassis:     
+    ChassisID:    mac 50:f7:22:01:01:00
+    SysName:      cisco.switch
+    SysDescr:     Cisco IOS Software, C2960L Software (C2960L-UNIVERSALK9-M), Version 15.2(5c)E, RELEASE SOFTWARE (fc1)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2016 by Cisco Systems, Inc.
+Compiled Tue 18-Oct-16 23:59 by prod_rel_team
+    MgmtIP:       10.0.0.3
+    Capability:   Bridge, on
+    Capability:   Router, off
+  Port:        
+    PortID:       ifname Gi0/25
+    PortDescr:    GigabitEthernet0/25
+    PMD autoneg:  supported: no, enabled: yes
+      Adv:          100Base-X, HD: no, FD: yes
+      MAU oper type: 1000BaseSXFD - Fiber over short-wavelength laser, full duplex mode
+  VLAN:         1, pvid: yes
+-------------------------------------------------------------------------------
