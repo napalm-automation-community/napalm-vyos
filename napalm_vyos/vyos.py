@@ -211,8 +211,8 @@ class VyOSDriver(NetworkDriver):
 
         try:
             self.device.commit()
-        except ValueError:
-            raise CommitError("Failed to commit config on the device")
+        except ValueError as err:
+            raise CommitError('\n\n{}'.format(err))
 
         self.device.send_config_set(['save'])
         self.device.exit_config_mode()
